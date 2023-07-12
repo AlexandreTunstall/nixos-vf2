@@ -1,0 +1,22 @@
+--- a/drivers/gpu/drm/verisilicon/vs_drv.c
++++ b/drivers/gpu/drm/verisilicon/vs_drv.c
+@@ -243,8 +243,6 @@
+ 
+ 	drm_mode_config_reset(drm_dev);
+ 
+-	drm_dev->irq_enabled = true;
+-
+ 	drm_kms_helper_poll_init(drm_dev);
+ 
+ 	ret = drm_dev_register(drm_dev, 0);
+--- a/drivers/gpu/drm/verisilicon/vs_simple_enc.c
++++ b/drivers/gpu/drm/verisilicon/vs_simple_enc.c
+@@ -196,9 +196,7 @@ static int encoder_bind(struct device *dev, struct device *master, void *data)
+ 	
+ 	int ret;
+ 
+-#ifdef CONFIG_STARFIVE_DSI
+ 	struct drm_panel *tmp_panel;
+-#endif
+ 
+ 	encoder = &simple->encoder;

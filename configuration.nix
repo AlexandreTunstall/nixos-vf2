@@ -24,43 +24,33 @@
   ];
   boot.consoleLogLevel = 7;
   boot.initrd.availableKernelModules = [
-    "dw_mmc-starfive" "motorcomm" "dwmac-starfive"
+    "dw_mmc-starfive" "motorcomm"
     "cdns3-starfive"
-    "jh7110-trng"
-    "jh7110-crypto"
-    "phy-jh7110-usb"
-    "phy-starfive-dphy-rx"
-    "clk-starfive-jh7110-aon"
-    "clk-starfive-jh7110-stg"
-    # "clk-starfive-jh7110-vout"
-    "clk-starfive-jh7110-isp"
-    # "clk-starfive-jh7100-audio"
-    "phy-jh7110-pcie"
-    "pcie-starfive"
-    "nvme"
-  ];
-  boot.blacklistedKernelModules = [
     "clk-starfive-jh7110-vout"
+    "clk-starfive-jh7110-isp"
+    "nvme"
+    "starfive-pwmdac"
+    "starfive-pwmdac-transmitter"
+    "starfive-pdm"
+    "starfive-tdm"
+    "starfive-mailbox"
+    "starfive-jh7110-regulator"
+    "starfivecamss"
+    "panel-starfive-10inch"
+    "vs-drm"
+    "at24"
+    "stmmac"
+    "stmmac-pci"
+    "stmmac-platform"
+    "dwmac-starfive-plat"
+    "i2c-dev"
+    "i2c-designware-platform"
+    "uvcvideo"
   ];
 
-  hardware.deviceTree.name = "starfive/jh7110-starfive-visionfive-2-v1.3b.dtb";
+  hardware.deviceTree.name = "starfive/jh7110-visionfive-v2.dtb";
 
-  environment.systemPackages = with pkgs; [
-    cryptsetup
-    dtc
-    fatresize
-    git
-    htop
-    lshw
-    mc
-    mtdutils
-    neofetch
-    pciutils
-    socat
-    unzip
-    usbutils
-    wget
-  ];
+  environment.systemPackages = [ pkgs.mtdutils ];
 
   services.getty.autologinUser = "root";
   services.openssh = {
@@ -72,6 +62,52 @@
   users.users.root.password = "secret";
 
   documentation.nixos.enable = false;
+
+  nixpkgs.localSystem = {
+    system = "riscv64-linux";
+
+    gcc = {
+      arch = "rv64gc_zba_zbb";
+      tune = "sifive-u74";
+    };
+
+    # This doesn't seem to have much effect?
+    linker = "gold";
+  };
+
+  nixpkgs.config = {
+    replaceStdenv = { pkgs }: pkgs.gcc13Stdenv;
+  };
+
+  nixpkgs.overlays = [
+    (self: super: {
+      bind = super.bind.overrideAttrs (_: {
+        doCheck = false;
+      });
+      libarchive = super.libarchive.overrideAttrs (_: {
+        doCheck = false;
+      });
+      libressl = super.libressl.overrideAttrs (_: {
+        doCheck = false;
+      });
+      # LLVM 11 doesn't build on RISC-V?
+      llvmPackages = self.llvmPackages_15;
+      # meson's checks try to chmod symbolic links
+      meson = super.meson.overrideAttrs (_: {
+        doInstallCheck = false;
+      });
+      nlohmann_json = super.nlohmann_json.overrideAttrs (_: {
+        doCheck = false;
+      });
+      # Doesn't compile with GCC 13
+      zeromq = super.zeromq.override {
+        stdenv = self.gcc12Stdenv;
+      };
+    })
+  ];
+
+  boot.supportedFilesystems = lib.mkForce [ "vfat" "ext4" ];
+  boot.initrd.supportedFilesystems = lib.mkForce [ "vfat" "ext4" ];
 
   system.stateVersion = "22.11";
 }

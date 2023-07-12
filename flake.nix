@@ -6,14 +6,14 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NickCao/nixpkgs/riscv";
+      url = "github:AlexandreTunstall/nixpkgs/riscv64";
     };
     nixpkgs-native = {
       url = "github:NixOS/nixpkgs/nixos-unstable";
     };
     linux-vf2-src = {
       flake = false;
-      url = "github:starfive-tech/linux/JH7110_VisionFive2_upstream";
+      url = "github:starfive-tech/linux/JH7110_VisionFive2_devel";
     };
     starfive-tools = {
       flake = false;
